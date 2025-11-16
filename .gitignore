@@ -1,5 +1,4 @@
-#ignore everything
-*
+settings.json
 #Not dirs
 !/**/
 #Not python files
@@ -7,3 +6,6 @@
 #And not this file
 !.gitignore
 #Add any other files below:
+.venv
+.python-version
+uv.lock
