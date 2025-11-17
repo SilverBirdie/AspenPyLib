@@ -1,12 +1,10 @@
 settings.json
 #Not dirs
-!/**/
-#Not python files
-!*.py
-#And not this file
-!.gitignore
+
+!/aspen_files/*.apw
+
 #Add any other files below:
 .vscode
 .venv
 .python-version
-uv.lock
+
