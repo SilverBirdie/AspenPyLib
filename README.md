@@ -39,7 +39,7 @@ Q2 2025-2026 (10-11-2025 t/m 30-01-2026)
 ### Week 2:
 
 * [ ] start making the compatibility between the data gathering function and the TEA package.
-* [x] finish the data gathering function for compressors :white_check_mark:
+* [x] finish the data gathering function for compressor
 * [ ] start making simple tests for the data gathering function
 
 
