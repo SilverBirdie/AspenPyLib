@@ -1,9 +1,10 @@
-#ignore everything
-*
+settings.json
 #Not dirs
-!/**/
-#Not python files
-!*.py
-#And not this file
-!.gitignore
+./aspen_files/*
+!./aspen_files/*.apw
+!./src
 #Add any other files below:
+.vscode
+.venv
+.python-version
+
