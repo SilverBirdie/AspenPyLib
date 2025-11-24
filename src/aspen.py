@@ -31,38 +31,38 @@ class SearchBlock:
 
 search = {
     "Hierarchy": SearchBlock([], [r"Data\Blocks"]),
-    "Mixer": SearchBlock([]),
+    "Mixer": SearchBlock([]),  # TODO: Grab one of the streams from the connection and read the flow rate from there
     "Flash2": SearchBlock([(r"Data\B_PRES", "Outlet Pressure")]),
     "Flash3": SearchBlock([(r"Data\B_PRES", "Outlet Pressure")]),
-    "Decanter": SearchBlock([]),
-    "Sep": SearchBlock([]),
+    "Decanter": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Sep": SearchBlock([]), # TODO: Read the output pressure from the connections
     "Sep2": SearchBlock([]),
     # for the heater, not sure if the heating duty is `QNET` or `QCALC`
-    "Heater": SearchBlock([(r"Data\QNET", "Heating Duty")]),
-    # cannot find any data for heat exchangers
-    "HeatX": SearchBlock([]),
-    "MHeatX": SearchBlock([]),
+    "Heater": SearchBlock([(r"Data\QCALC", "Heating Duty")]),
+    "HeatX": SearchBlock([(r'Data\HX_AREAP', "Heat Transfer Area")]),
+    # "MHeatX": SearchBlock([]),
     # All types of Columns
-
-
+    # TODO: Figure out the ids of columns
     # All types of Reactors
-    "RStoic": SearchBlock([]),
-    "RCSTR": SearchBlock([]),
+    "RStoic": SearchBlock([(r'Data\B_PRES', "Pressure")]), # TODO: Find the length and width/ volume
+    "RCSTR": SearchBlock([(r'Data\B_PRES', "Pressure"), (r'Data\TOT_VOL', "Volume")]),
 
-    "Pump": SearchBlock([]),
+    "Pump": SearchBlock([(r'Data\VFLOW', "Volumetric Flow")]), # TODO: This is in cum/sec in Aspen, needs to be in L/sec
     "Compr": SearchBlock([(r"Data\WNET", "Net Power")]),
     "MCompr": SearchBlock([(r"Data\WNET", "Net Power")]),
-    "Crytallizer": SearchBlock([]),
-    "Crusher": SearchBlock([]),
-    "Dryer": SearchBlock([]),
-    "Fluidbed": SearchBlock([]),
-    "Cyclone": SearchBlock([]),
-    "Cfuge": SearchBlock([]),
-    "Filter": SearchBlock([]),
-    "CfFilter": SearchBlock([]),
-    "Valve": SearchBlock([]),
+    "Crytallizer": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Crusher": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Dryer": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Fluidbed": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Cyclone": SearchBlock([]), # TODO: Grab one of the streams from the connection and read the flow rate from there
+    "Cfuge": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "Filter": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    "CfFilter": SearchBlock([]), # TODO: Not in cstr-ch4.apw
+    # Valve not in TEA?
 }
-RECORD_TYPE = 6
+HAP_RECORDTYPE = 6
+# Port in or out
+HAP_INOUT = 14
 
 
 def read_data(aspen: Aspen):
@@ -72,14 +72,20 @@ def read_data(aspen: Aspen):
 
     # Loop through all blocks
     for block, path in blocks:
-        record_type = block.AttributeValue(RECORD_TYPE)
+        record_type = block.AttributeValue(HAP_RECORDTYPE)
         print(block.Name, block.Value, block.ValueType, record_type)
 
-        curr_data = { "path": path, "record_type": record_type, "data": {} }
+        curr_data = { "path": path, "record_type": record_type, "data": {}, "input": {}, "connections": {} }
 
         if s := search.get(record_type):
-            for b, data_path in get_all_children(block.FindNode("Output"), rf"{path}\Output"):
+            for b, _ in get_all_children(block.FindNode("Input"), rf"{path}\Input"):
+                curr_data["input"][b.Name] = (b.Value, b.UnitString)
+
+            for b, _ in get_all_children(block.FindNode("Output"), rf"{path}\Output"):
                 curr_data["data"][b.Name] = (b.Value, b.UnitString)
+
+            for b, _ in get_all_children(block.FindNode("Connections"), rf"{path}\Connections"):
+                curr_data["connections"][b.Name] = (b.Value, b.AttributeValue(HAP_INOUT))
 
             for child_path in s.children:
                 b = block.FindNode(child_path)
